@@ -25,13 +25,15 @@ public class Assignment6 {
             PrintStream output = new PrintStream(new File("out6.txt"));
             LinkedList<Words> words = new LinkedList<>();
             words = getWords(input, words);
+
             Collections.sort(words);
 
-            Iterator<Words> iterator = words.iterator();
-            LinkedList<AnagramFamily> families = new LinkedList<>();
-            while (iterator.hasNext()) {
+            LinkedList<AnagramFamily> families = createAnagramFamilies(words);
 
-            }
+            families.sort(new FamilySizeDescending());
+
+            writeOutput(output, families);
+
 
         }
         catch (FileNotFoundException e) {
@@ -51,6 +53,54 @@ public class Assignment6 {
 
         return word;
 
+    }
+
+    public static LinkedList<AnagramFamily> createAnagramFamilies(LinkedList<Words> words) {
+        LinkedList<AnagramFamily> families = new LinkedList<>();
+        LinkedList<Words> currentFamily = new LinkedList<>();
+
+        Iterator<Words> iterator = words.iterator();
+        Words currentWord = null;
+
+        while (iterator.hasNext()) {
+            Words nextWord = iterator.next();
+            if (currentWord == null || nextWord.getCanonicalForm().equals(currentWord.getCanonicalForm())) {
+                currentFamily.add(nextWord);
+            } else {
+                families.add(new AnagramFamily(new LinkedList<>(currentFamily)));
+                currentFamily.clear();
+                currentFamily.add(nextWord);
+            }
+            currentWord = nextWord;
+        }
+
+        if (!currentFamily.isEmpty()) {
+            families.add(new AnagramFamily(new LinkedList<>(currentFamily)));
+        }
+
+        return families;
+    }
+
+
+    public static void writeOutput(PrintStream output, LinkedList<AnagramFamily> families) {
+        output.println("Top 5 Largest Families:");
+        for (int i = 0; i < Math.min(5, families.size()); i++) {
+            output.println(families.get(i));
+            output.println();
+        }
+
+        output.println("\nFamilies of Size 8:");
+        for (AnagramFamily family : families) {
+            if (family.getSize() == 8) {
+                output.println(family);
+                output.println();
+            }
+        }
+
+        output.println("\nLast Family:");
+        if (!families.isEmpty()) {
+            output.println(families.get(families.size() - 1));
+        }
     }
 
 }
